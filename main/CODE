@@ -3,22 +3,72 @@
 #include <string>
 using namespace std;
 
-// Structure to represent a proposal
-struct Proposal {
+// Class to represent a fitness plan proposal
+class Proposal {
+private:
     int id;
     string proposerName;
     string planName;
     string description;
     string status; // Pending, Approved, Rejected
+
+public:
+    // Constructor
+    Proposal(int id, const string& proposerName, const string& planName, const string& description)
+        : id(id), proposerName(proposerName), planName(planName), description(description), status("Pending") {}
+
+    // Display proposal details
+    void display() const {
+        cout << "ID: " << id << "\n"
+             << "Proposer: " << proposerName << "\n"
+             << "Plan Name: " << planName << "\n"
+             << "Description: " << description << "\n"
+             << "Status: " << status << "\n"
+             << "-------------------------\n";
+    }
+
+    // Getters and setters
+    int getId() const { return id; }
+    const string& getStatus() const { return status; }
+
+    void updateStatus(const string& newStatus) {
+        if (newStatus == "Approved" || newStatus == "Rejected") {
+            status = newStatus;
+        } else {
+            cout << "Invalid status. Status remains unchanged.\n";
+        }
+    }
 };
 
-// Structure to represent daily fitness logs
-struct FitnessLog {
+// Class to represent a daily fitness log
+class FitnessLog {
+private:
     string date;
     int caloriesBurned;
     int stepsTaken;
     float hoursSlept;
     int waterIntake; // in milliliters
+
+public:
+    // Constructor
+    FitnessLog(const string& date, int caloriesBurned, int stepsTaken, float hoursSlept, int waterIntake)
+        : date(date), caloriesBurned(caloriesBurned), stepsTaken(stepsTaken), hoursSlept(hoursSlept), waterIntake(waterIntake) {}
+
+    // Display log details
+    void display() const {
+        cout << "Date: " << date << "\n"
+             << "Calories Burned: " << caloriesBurned << " cal\n"
+             << "Steps Taken: " << stepsTaken << "\n"
+             << "Hours Slept: " << hoursSlept << " hrs\n"
+             << "Water Intake: " << waterIntake << " ml\n"
+             << "-------------------------\n";
+    }
+
+    // Getters for generating summary
+    int getCaloriesBurned() const { return caloriesBurned; }
+    int getStepsTaken() const { return stepsTaken; }
+    float getHoursSlept() const { return hoursSlept; }
+    int getWaterIntake() const { return waterIntake; }
 };
 
 // Global variables
@@ -28,19 +78,18 @@ int nextProposalId = 1;
 
 // Function to submit a proposal
 void submitProposal() {
-    Proposal proposal;
-    proposal.id = nextProposalId++;
+    string proposerName, planName, description;
     cout << "Enter your name: ";
     cin.ignore();
-    getline(cin, proposal.proposerName);
+    getline(cin, proposerName);
     cout << "Enter fitness plan name: ";
-    getline(cin, proposal.planName);
+    getline(cin, planName);
     cout << "Enter description of the plan: ";
-    getline(cin, proposal.description);
-    proposal.status = "Pending";
+    getline(cin, description);
 
+    Proposal proposal(nextProposalId++, proposerName, planName, description);
     proposals.push_back(proposal);
-    cout << "Proposal submitted successfully! Your proposal ID is: " << proposal.id << "\n";
+    cout << "Proposal submitted successfully! Your proposal ID is: " << nextProposalId - 1 << "\n";
 }
 
 // Function to view all proposals
@@ -52,16 +101,11 @@ void viewProposals() {
 
     cout << "\n--- List of Proposals ---\n";
     for (const auto& proposal : proposals) {
-        cout << "ID: " << proposal.id << "\n"
-             << "Proposer: " << proposal.proposerName << "\n"
-             << "Plan Name: " << proposal.planName << "\n"
-             << "Description: " << proposal.description << "\n"
-             << "Status: " << proposal.status << "\n"
-             << "-------------------------\n";
+        proposal.display();
     }
 }
 
-// Function to approve or reject a proposal
+// Function to update the status of a proposal
 void updateProposalStatus() {
     if (proposals.empty()) {
         cout << "No proposals available to update.\n";
@@ -73,26 +117,19 @@ void updateProposalStatus() {
     cin >> id;
 
     for (auto& proposal : proposals) {
-        if (proposal.id == id) {
-            cout << "Proposal found:\n";
-            cout << "Plan Name: " << proposal.planName << "\n";
-            cout << "Description: " << proposal.description << "\n";
-            cout << "Current Status: " << proposal.status << "\n";
-
+        if (proposal.getId() == id) {
             string newStatus;
+            cout << "Proposal found:\n";
+            proposal.display();
             cout << "Enter new status (Approved/Rejected): ";
             cin >> ws; // Clear input buffer
             getline(cin, newStatus);
-
-            if (newStatus == "Approved" || newStatus == "Rejected") {
-                proposal.status = newStatus;
-                cout << "Proposal status updated successfully to: " << newStatus << "\n";
-            } else {
-                cout << "Invalid status. Status remains unchanged.\n";
-            }
+            proposal.updateStatus(newStatus);
+            cout << "Proposal status updated successfully.\n";
             return;
         }
     }
+
     cout << "Proposal with ID " << id << " not found.\n";
 }
 
@@ -108,7 +145,7 @@ void deleteProposal() {
     cin >> id;
 
     for (auto it = proposals.begin(); it != proposals.end(); ++it) {
-        if (it->id == id) {
+        if (it->getId() == id) {
             proposals.erase(it);
             cout << "Proposal with ID " << id << " deleted successfully.\n";
             return;
@@ -120,20 +157,24 @@ void deleteProposal() {
 
 // Function to log daily fitness data
 void logFitnessData() {
-    FitnessLog log;
-    cout << "Enter date (YYYY-MM-DD): ";
-    cin >> log.date;
-    cout << "Enter calories burned: ";
-    cin >> log.caloriesBurned;
-    cout << "Enter steps taken: ";
-    cin >> log.stepsTaken;
-    cout << "Enter hours slept: ";
-    cin >> log.hoursSlept;
-    cout << "Enter water intake (in milliliters): ";
-    cin >> log.waterIntake;
+    string date;
+    int caloriesBurned, stepsTaken, waterIntake;
+    float hoursSlept;
 
+    cout << "Enter date (YYYY-MM-DD): ";
+    cin >> date;
+    cout << "Enter calories burned: ";
+    cin >> caloriesBurned;
+    cout << "Enter steps taken: ";
+    cin >> stepsTaken;
+    cout << "Enter hours slept: ";
+    cin >> hoursSlept;
+    cout << "Enter water intake (in milliliters): ";
+    cin >> waterIntake;
+
+    FitnessLog log(date, caloriesBurned, stepsTaken, hoursSlept, waterIntake);
     fitnessLogs.push_back(log);
-    cout << "Fitness data logged successfully for " << log.date << ".\n";
+    cout << "Fitness data logged successfully for " << date << ".\n";
 }
 
 // Function to view fitness logs
@@ -145,12 +186,7 @@ void viewFitnessLogs() {
 
     cout << "\n--- Fitness Logs ---\n";
     for (const auto& log : fitnessLogs) {
-        cout << "Date: " << log.date << "\n";
-        cout << "Calories Burned: " << log.caloriesBurned << " cal\n";
-        cout << "Steps Taken: " << log.stepsTaken << "\n";
-        cout << "Hours Slept: " << log.hoursSlept << " hrs\n";
-        cout << "Water Intake: " << log.waterIntake << " ml\n";
-        cout << "---------------------\n";
+        log.display();
     }
 }
 
@@ -165,10 +201,10 @@ void generateSummaryReport() {
     float totalSleep = 0.0;
 
     for (const auto& log : fitnessLogs) {
-        totalCalories += log.caloriesBurned;
-        totalSteps += log.stepsTaken;
-        totalWater += log.waterIntake;
-        totalSleep += log.hoursSlept;
+        totalCalories += log.getCaloriesBurned();
+        totalSteps += log.getStepsTaken();
+        totalSleep += log.getHoursSlept();
+        totalWater += log.getWaterIntake();
     }
 
     cout << "\n--- Summary Report ---\n";
@@ -232,3 +268,4 @@ int main() {
     menu();
     return 0;
 }
+
